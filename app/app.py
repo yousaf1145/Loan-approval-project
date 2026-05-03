@@ -586,50 +586,110 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     st.markdown("---")
-    st.markdown("### Credit Score Signal")
 
-    # Read the main-form selection (single source of truth)
-    first_option = list(credit_options.keys())[0]
-    selected_credit = st.session_state.get("main_credit_score", first_option)
-    chosen = credit_options.get(selected_credit, credit_options[first_option])
-
-    color_map = {
-        "green":  ("#2ECC71", "rgba(46,204,113,0.08)"),
-        "blue":   ("#3B9EFF", "rgba(59,158,255,0.08)"),
-        "orange": ("#F5A623", "rgba(245,166,35,0.08)"),
-        "red":    ("#E74C3C", "rgba(231,76,60,0.08)"),
-    }
-    fg, bg = color_map[chosen["color"]]
-
-    # Show score badge
-    st.markdown(f"""
-    <div style="background:{bg};border:1px solid {fg}44;border-radius:10px;
-                padding:1rem 1.2rem;margin-top:0.4rem;">
-        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;
-                    text-transform:uppercase;color:{fg};margin-bottom:0.6rem;">
-            Selected Range
-        </div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;
-                    font-weight:700;color:{fg};margin-bottom:0.5rem;">
-            {selected_credit.split('·')[0].strip()}
-        </div>
-        <div style="font-size:0.78rem;color:#8A8FA8;line-height:1.55;">
-            {chosen['info']}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### How to Verify")
+    # ── Credit Score Guide Header ──
     st.markdown(
-        '<div class="sidebar-badge">'
-        '<strong>e-CIB Report</strong>'
-        'Request an official credit bureau report from your bank or visit the '
-        'State Bank of Pakistan (SBP) portal at <strong>sbp.org.pk</strong> '
-        'to get your official credit score before applying.'
-        '</div>',
+        '<p style="font-family:\'DM Mono\',monospace;font-size:0.62rem;letter-spacing:0.18em;'
+        'text-transform:uppercase;color:#C9A84C;margin-bottom:0.6rem;">📊 Credit Score Guide</p>',
         unsafe_allow_html=True
     )
+    st.markdown(
+        '<p style="font-size:0.78rem;color:#8A8FA8;margin-bottom:1rem;line-height:1.5;">'
+        'Select a range in the form. The tier matching your e-CIB score is highlighted below.</p>',
+        unsafe_allow_html=True
+    )
+
+    # Read currently selected tier
+    first_option    = list(credit_options.keys())[0]
+    selected_credit = st.session_state.get("main_credit_score", first_option)
+
+    # Color lookup
+    color_map = {
+        "green":  ("#2ECC71", "rgba(46,204,113,0.10)", "rgba(46,204,113,0.03)"),
+        "blue":   ("#3B9EFF", "rgba(59,158,255,0.10)",  "rgba(59,158,255,0.03)"),
+        "orange": ("#F5A623", "rgba(245,166,35,0.10)",  "rgba(245,166,35,0.03)"),
+        "red":    ("#E74C3C", "rgba(231,76,60,0.10)",   "rgba(231,76,60,0.03)"),
+    }
+
+    # ── Render ALL 5 tiers as a guide list ──
+    tiers_html = ""
+    for label, meta in credit_options.items():
+        is_selected = (label == selected_credit)
+        fg, border_active, border_idle = color_map[meta["color"]]
+        short_range = label.split("·")[0].strip()   # e.g. "0.8 – 1.0"
+        tier_name   = label.split("·")[1].strip()   # e.g. "Excellent"
+
+        if is_selected:
+            card_style = (
+                f"background:{border_active};"
+                f"border:1.5px solid {fg};"
+                f"border-left:4px solid {fg};"
+                "border-radius:10px;"
+                "padding:0.75rem 1rem;"
+                "margin-bottom:0.5rem;"
+            )
+            range_color = fg
+            name_color  = "#F0EDE8"
+            desc_color  = "#A0A5B8"
+            selected_tag = (
+                f'<span style="float:right;font-family:\'DM Mono\',monospace;'
+                f'font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;'
+                f'color:{fg};background:{border_active};border:1px solid {fg}44;'
+                f'border-radius:4px;padding:2px 6px;">Selected</span>'
+            )
+        else:
+            card_style = (
+                f"background:rgba(255,255,255,0.02);"
+                f"border:1px solid rgba(255,255,255,0.06);"
+                "border-left:3px solid rgba(255,255,255,0.08);"
+                "border-radius:10px;"
+                "padding:0.7rem 1rem;"
+                "margin-bottom:0.5rem;"
+                "opacity:0.65;"
+            )
+            range_color = "#6A7090"
+            name_color  = "#6A7090"
+            desc_color  = "#4A5066"
+            selected_tag = ""
+
+        tiers_html += f"""
+        <div style="{card_style}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.72rem;
+                             font-weight:500;color:{range_color};">{short_range}</span>
+                {selected_tag}
+            </div>
+            <div style="font-family:'Outfit',sans-serif;font-size:0.82rem;
+                        font-weight:600;color:{name_color};margin-bottom:0.3rem;">
+                {meta['icon']} &nbsp;{tier_name}
+            </div>
+            <div style="font-size:0.72rem;color:{desc_color};line-height:1.45;">
+                {meta['info']}
+            </div>
+        </div>
+        """
+
+    st.markdown(tiers_html, unsafe_allow_html=True)
+
+    # ── How to Verify section ──
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        '<p style="font-family:\'DM Mono\',monospace;font-size:0.62rem;letter-spacing:0.18em;'
+        'text-transform:uppercase;color:#C9A84C;margin-bottom:0.6rem;">🏦 How to Check Your Score</p>',
+        unsafe_allow_html=True
+    )
+    st.markdown("""
+    <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);
+                border-radius:10px;padding:1rem 1.1rem;font-size:0.78rem;
+                color:#8A8FA8;line-height:1.6;">
+        <div style="color:#E8C97A;font-weight:600;margin-bottom:0.4rem;">e-CIB Report</div>
+        <div>① Visit your bank branch and request an e-CIB report</div>
+        <div style="margin-top:0.3rem;">② Or go online to
+            <span style="color:#C9A84C;font-weight:500;">sbp.org.pk</span>
+            and check your official ECIB credit standing</div>
+        <div style="margin-top:0.3rem;">③ Match your score to the range above</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
