@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import os  # Added for path handling
 
 # ── 1. PAGE CONFIG ──────────────────────────────────────────────────────────
 st.set_page_config(
@@ -494,33 +493,12 @@ label[data-testid="stWidgetLabel"] p,
 """, unsafe_allow_html=True)
 
 
-# ── 3. LOAD MODEL (Updated for Deployment) ───────────────────────────────────
+# ── 3. LOAD MODEL ────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_model():
-    """
-    Finds the model folder regardless of whether the app is running
-    locally or in a cloud container.
-    """
-    # Get the directory where app.py is located
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Move up one level to the project root, then into the model folder
-    model_path = os.path.join(current_dir, "..", "model")
-
-    # Define file paths
-    model_file   = os.path.join(model_path, 'loan_logistic_model.pkl')
-    feature_file = os.path.join(model_path, 'feature_names.pkl')
-
-    try:
-        model    = joblib.load(model_file)
-        features = joblib.load(feature_file)
-        return model, features
-    except FileNotFoundError:
-        st.error(
-            f"Deployment Error: Model files not found at '{os.path.abspath(model_path)}'. "
-            "Ensure your GitHub repository has the /model folder at the project root."
-        )
-        return None, None
+    model    = joblib.load('../model/loan_logistic_model.pkl')
+    features = joblib.load('../model/feature_names.pkl')
+    return model, features
 
 model, model_features = load_model()
 
@@ -644,7 +622,7 @@ with st.sidebar:
 st.markdown("""
 <div class="hero-banner">
     <div class="eyebrow">▸ Underwriting Intelligence Platform</div>
-    <h1>AI <span>Loan</span> Predicator</h1>
+    <h1>CareXpert <span>Risk</span> Engine</h1>
     <p>Complete the applicant profile below to generate a structured risk assessment and lending recommendation.</p>
 </div>
 """, unsafe_allow_html=True)
@@ -701,10 +679,6 @@ st.button("⬡  Generate Risk Intelligence Report", key="submit")
 
 # ── 8. REPORT ────────────────────────────────────────────────────────────────
 if st.session_state.get("submit"):
-
-    # Guard: stop if model failed to load
-    if model is None or model_features is None:
-        st.stop()
 
     # Build input
     input_df = pd.DataFrame([{
@@ -904,7 +878,7 @@ if st.session_state.get("submit"):
 
 # ── 9. FOOTER ────────────────────────────────────────────────────────────────
 st.markdown(
-    '<div class="footer"> AI loan predicator · For Internal Underwriting Use Only · '
+    '<div class="footer">CareXpert Risk Intelligence · For Internal Underwriting Use Only · '
     'Results are probabilistic, not definitive</div>',
     unsafe_allow_html=True
 )
