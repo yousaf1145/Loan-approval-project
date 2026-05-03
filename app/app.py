@@ -611,142 +611,142 @@ CREDIT_HELP = (
 
 
 # ── 5. SIDEBAR ───────────────────────────────────────────────────────────────
+# Build sidebar content — NO f-string loops (breaks on Python ≤ 3.11)
+first_option    = list(credit_options.keys())[0]
+selected_credit = st.session_state.get("main_credit_score", first_option)
+
+# Per-tier static data
+_TIERS = [
+    ("0.8 – 1.0", "Excellent",          "green",  "#2ECC71", "rgba(46,204,113,0.12)",  "rgba(46,204,113,0.35)",  "✦",
+     "Highest trust tier. Consistent on-time repayment history. Strongest approval signal in the model."),
+    ("0.6 – 0.8", "Good",                "blue",   "#3B9EFF", "rgba(59,158,255,0.12)",  "rgba(59,158,255,0.35)",  "◈",
+     "Reliable repayment with only minor delays. Model treats this favorably."),
+    ("0.4 – 0.6", "Average / No History","orange", "#F5A623", "rgba(245,166,35,0.12)",  "rgba(245,166,35,0.35)",  "◇",
+     "Neutral zone or first-time borrowers. Model shifts weight to income and education."),
+    ("0.2 – 0.4", "Below Average",        "orange", "#F5A623", "rgba(245,166,35,0.08)",  "rgba(245,166,35,0.25)",  "▽",
+     "Some missed payments on record. Strong co-applicant may partially offset."),
+    ("0.0 – 0.2", "Very Poor",            "red",    "#E74C3C", "rgba(231,76,60,0.12)",   "rgba(231,76,60,0.35)",   "✕",
+     "Frequent defaults detected. Critical risk flag — very difficult to offset."),
+]
+
+# Map credit_options keys to tier rows for selection matching
+_TIER_KEYS = list(credit_options.keys())
+
+def _build_tier_card(key_idx, tier_tuple, is_active):
+    rng, name, _color, fg, bg_active, border_active, icon, desc = tier_tuple
+    if is_active:
+        bg     = bg_active
+        border = "1.5px solid " + fg
+        bl     = "4px solid " + fg
+        rc     = fg
+        nc     = "#F0EDE8"
+        dc     = "#B0B5C8"
+        op     = "1"
+        tag    = (
+            "<span style=\"float:right;font-size:0.55rem;font-family:monospace;"
+            "letter-spacing:0.1em;text-transform:uppercase;color:" + fg + ";"
+            "background:" + bg_active + ";border:1px solid " + fg + "55;"
+            "border-radius:4px;padding:1px 5px;\">Selected</span>"
+        )
+    else:
+        bg     = "rgba(255,255,255,0.025)"
+        border = "1px solid rgba(255,255,255,0.07)"
+        bl     = "3px solid rgba(255,255,255,0.09)"
+        rc     = "#555A70"
+        nc     = "#555A70"
+        dc     = "#3E4358"
+        op     = "0.7"
+        tag    = ""
+
+    return (
+        "<div style=\"background:" + bg + ";border:" + border + ";"
+        "border-left:" + bl + ";border-radius:10px;padding:0.65rem 0.9rem;"
+        "margin-bottom:0.45rem;opacity:" + op + ";\">"
+        "<div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;\">"
+        "<span style=\"font-size:0.68rem;font-family:monospace;color:" + rc + ";\">" + rng + "</span>"
+        + tag +
+        "</div>"
+        "<div style=\"font-size:0.8rem;font-weight:600;color:" + nc + ";margin-bottom:3px;\">"
+        + icon + " &nbsp;" + name +
+        "</div>"
+        "<div style=\"font-size:0.7rem;color:" + dc + ";line-height:1.45;\">" + desc + "</div>"
+        "</div>"
+    )
+
+_cards_html = ""
+for i, (key, tier_data) in enumerate(zip(_TIER_KEYS, _TIERS)):
+    _cards_html += _build_tier_card(i, tier_data, key == selected_credit)
+
 with st.sidebar:
-    st.markdown("## ⬡ CareXpert")
+    # Logo
     st.markdown(
-        '<p style="font-family:\'DM Mono\',monospace;font-size:0.62rem;'
-        'letter-spacing:0.15em;color:#4A5066;text-transform:uppercase;margin-top:-0.4rem;">'
-        'Risk Intelligence v2.0</p>',
-        unsafe_allow_html=True
-    )
-    st.markdown("---")
-
-    # ── Credit Score Guide Header ──
-    st.markdown(
-        '<p style="font-family:\'DM Mono\',monospace;font-size:0.62rem;letter-spacing:0.18em;'
-        'text-transform:uppercase;color:#C9A84C;margin-bottom:0.6rem;">📊 Credit Score Guide</p>',
+        "<div style=\"font-family:'Cormorant Garamond',serif;font-size:1.5rem;"
+        "font-weight:700;color:#C9A84C;\">&#x2B21; CareXpert</div>",
         unsafe_allow_html=True
     )
     st.markdown(
-        '<p style="font-size:0.78rem;color:#8A8FA8;margin-bottom:1rem;line-height:1.5;">'
-        'Select a range in the form. The tier matching your e-CIB score is highlighted below.</p>',
+        "<p style=\"font-family:monospace;font-size:0.55rem;letter-spacing:0.16em;"
+        "text-transform:uppercase;color:#3A3F54;margin-top:2px;margin-bottom:10px;\">"
+        "Risk Intelligence v2.0</p>",
+        unsafe_allow_html=True
+    )
+    st.markdown("<hr style=\"border:none;border-top:1px solid rgba(255,255,255,0.07);margin-bottom:12px;\">", unsafe_allow_html=True)
+
+    # Guide header
+    st.markdown(
+        "<p style=\"font-family:monospace;font-size:0.6rem;letter-spacing:0.17em;"
+        "text-transform:uppercase;color:#C9A84C;margin-bottom:6px;\">&#x1F4CA; Credit Score Guide</p>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        "<p style=\"font-size:0.75rem;color:#8A8FA8;line-height:1.5;margin-bottom:10px;\">"
+        "Select a range in the form. Your matching tier is highlighted.</p>",
         unsafe_allow_html=True
     )
 
-    # Read currently selected tier
-    first_option    = list(credit_options.keys())[0]
-    selected_credit = st.session_state.get("main_credit_score", first_option)
+    # All 5 tier cards
+    st.markdown(_cards_html, unsafe_allow_html=True)
 
-    # Color lookup
-    color_map = {
-        "green":  ("#2ECC71", "rgba(46,204,113,0.10)", "rgba(46,204,113,0.03)"),
-        "blue":   ("#3B9EFF", "rgba(59,158,255,0.10)",  "rgba(59,158,255,0.03)"),
-        "orange": ("#F5A623", "rgba(245,166,35,0.10)",  "rgba(245,166,35,0.03)"),
-        "red":    ("#E74C3C", "rgba(231,76,60,0.10)",   "rgba(231,76,60,0.03)"),
-    }
-
-    # ── Render ALL 5 tiers as a guide list ──
-    tiers_html = ""
-    for label, meta in credit_options.items():
-        is_selected = (label == selected_credit)
-        fg, border_active, border_idle = color_map[meta["color"]]
-        short_range = label.split("·")[0].strip()   # e.g. "0.8 – 1.0"
-        tier_name   = label.split("·")[1].strip()   # e.g. "Excellent"
-
-        if is_selected:
-            card_style = (
-                f"background:{border_active};"
-                f"border:1.5px solid {fg};"
-                f"border-left:4px solid {fg};"
-                "border-radius:10px;"
-                "padding:0.75rem 1rem;"
-                "margin-bottom:0.5rem;"
-            )
-            range_color = fg
-            name_color  = "#F0EDE8"
-            desc_color  = "#A0A5B8"
-            selected_tag = (
-                f'<span style="float:right;font-family:\'DM Mono\',monospace;'
-                f'font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;'
-                f'color:{fg};background:{border_active};border:1px solid {fg}44;'
-                f'border-radius:4px;padding:2px 6px;">Selected</span>'
-            )
-        else:
-            card_style = (
-                f"background:rgba(255,255,255,0.02);"
-                f"border:1px solid rgba(255,255,255,0.06);"
-                "border-left:3px solid rgba(255,255,255,0.08);"
-                "border-radius:10px;"
-                "padding:0.7rem 1rem;"
-                "margin-bottom:0.5rem;"
-                "opacity:0.65;"
-            )
-            range_color = "#6A7090"
-            name_color  = "#6A7090"
-            desc_color  = "#4A5066"
-            selected_tag = ""
-
-        tiers_html += f"""
-        <div style="{card_style}">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;">
-                <span style="font-family:'DM Mono',monospace;font-size:0.72rem;
-                             font-weight:500;color:{range_color};">{short_range}</span>
-                {selected_tag}
-            </div>
-            <div style="font-family:'Outfit',sans-serif;font-size:0.82rem;
-                        font-weight:600;color:{name_color};margin-bottom:0.3rem;">
-                {meta['icon']} &nbsp;{tier_name}
-            </div>
-            <div style="font-size:0.72rem;color:{desc_color};line-height:1.45;">
-                {meta['info']}
-            </div>
-        </div>
-        """
-
-    st.markdown(tiers_html, unsafe_allow_html=True)
-
-    # ── How to Verify section ──
+    # How to verify
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        '<p style="font-family:\'DM Mono\',monospace;font-size:0.62rem;letter-spacing:0.18em;'
-        'text-transform:uppercase;color:#C9A84C;margin-bottom:0.6rem;">🏦 How to Check Your Score</p>',
+        "<p style=\"font-family:monospace;font-size:0.6rem;letter-spacing:0.16em;"
+        "text-transform:uppercase;color:#C9A84C;margin-bottom:6px;\">&#x1F3E6; How to Check Your Score</p>",
         unsafe_allow_html=True
     )
-    st.markdown("""
-    <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);
-                border-radius:10px;padding:1rem 1.1rem;font-size:0.78rem;
-                color:#8A8FA8;line-height:1.6;">
-        <div style="color:#E8C97A;font-weight:600;margin-bottom:0.4rem;">e-CIB Report</div>
-        <div>① Visit your bank branch and request an e-CIB report</div>
-        <div style="margin-top:0.3rem;">② Or go online to
-            <span style="color:#C9A84C;font-weight:500;">sbp.org.pk</span>
-            and check your official ECIB credit standing</div>
-        <div style="margin-top:0.3rem;">③ Match your score to the range above</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        "<div style=\"background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.22);"
+        "border-radius:9px;padding:0.9rem 1rem;font-size:0.75rem;color:#8A8FA8;line-height:1.7;\">"
+        "<span style=\"color:#E8C97A;font-weight:600;\">e-CIB Report</span><br>"
+        "<span style=\"color:#C9A84C;font-weight:600;\">&#x2460;</span> Visit your bank branch &#8594; request e-CIB report<br>"
+        "<span style=\"color:#C9A84C;font-weight:600;\">&#x2461;</span> Go to <strong style=\"color:#C9A84C;\">sbp.org.pk</strong> &#8594; eCIB section<br>"
+        "<span style=\"color:#C9A84C;font-weight:600;\">&#x2462;</span> Match your score to the range above"
+        "</div>",
+        unsafe_allow_html=True
+    )
 
-    # ── Clear Form Button ──
+    # Divider + clear button
     st.markdown(
-        '<div style="height:1px;background:linear-gradient(90deg,transparent,'
-        'rgba(255,255,255,0.08),transparent);margin:1.2rem 0 0.4rem;"></div>',
+        "<hr style=\"border:none;border-top:1px solid rgba(255,255,255,0.06);"
+        "margin:14px 0 4px;\">",
         unsafe_allow_html=True
     )
     st.markdown(
-        '<p style="font-family:\'DM Mono\',monospace;font-size:0.6rem;letter-spacing:0.14em;'
-        'text-transform:uppercase;color:#4A5066;text-align:center;margin-bottom:0;">↺ reset all fields to defaults</p>',
+        "<p style=\"font-family:monospace;font-size:0.58rem;letter-spacing:0.12em;"
+        "text-transform:uppercase;color:#3E4358;text-align:center;margin-bottom:2px;\">"
+        "&#x21BA; reset all fields to defaults</p>",
         unsafe_allow_html=True
     )
     if st.button("🗑  Clear Form", key="clear_form"):
-        keys_to_clear = [k for k in st.session_state if k not in ["clear_form"]]
+        keys_to_clear = [k for k in st.session_state if k != "clear_form"]
         for k in keys_to_clear:
             del st.session_state[k]
         st.rerun()
 
-    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        '<p style="font-family:\'DM Mono\',monospace;font-size:0.58rem;color:#2A2F44;'
-        'text-transform:uppercase;letter-spacing:0.12em;text-align:center;">'
-        'Powered by Logistic Regression · PKR</p>',
+        "<p style=\"font-family:monospace;font-size:0.52rem;color:#252A3A;"
+        "text-transform:uppercase;letter-spacing:0.1em;text-align:center;margin-top:8px;\">"
+        "Powered by Logistic Regression &middot; PKR</p>",
         unsafe_allow_html=True
     )
 
