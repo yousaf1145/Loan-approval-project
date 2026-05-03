@@ -60,8 +60,12 @@ html, body, [data-testid="stAppViewContainer"] {
     border-right: 1px solid var(--border) !important;
 }
 
-[data-testid="stSidebar"] * {
-    color: var(--text-primary) !important;
+/* Only force color on native Streamlit widgets inside sidebar, not custom HTML */
+[data-testid="stSidebar"] .stMarkdown p,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] hr {
+    color: var(--text-primary);
 }
 
 /* ── Header / Toolbar ── */
@@ -210,9 +214,9 @@ label[data-testid="stWidgetLabel"] p,
 }
 
 /* ─────────────────────────────────────────────────
-   SUBMIT BUTTON
+   MAIN SUBMIT BUTTON (gold) — main area only
 ───────────────────────────────────────────────── */
-[data-testid="stButton"] > button {
+section.main [data-testid="stButton"] > button {
     width: 100% !important;
     background: linear-gradient(135deg, var(--gold) 0%, #A07B2E 100%) !important;
     color: var(--navy) !important;
@@ -230,12 +234,42 @@ label[data-testid="stWidgetLabel"] p,
     margin-top: 0.5rem !important;
 }
 
-[data-testid="stButton"] > button:hover {
+section.main [data-testid="stButton"] > button:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 32px rgba(201,168,76,0.4) !important;
 }
 
-[data-testid="stButton"] > button:active {
+section.main [data-testid="stButton"] > button:active {
+    transform: translateY(0px) !important;
+}
+
+/* ─────────────────────────────────────────────────
+   SIDEBAR CLEAR BUTTON (red outline)
+───────────────────────────────────────────────── */
+[data-testid="stSidebar"] [data-testid="stButton"] > button {
+    width: 100% !important;
+    background: transparent !important;
+    color: #E74C3C !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    border: 1.5px solid rgba(231,76,60,0.5) !important;
+    border-radius: 10px !important;
+    padding: 0.65rem 1.2rem !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    margin-top: 0.8rem !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stButton"] > button:hover {
+    background: rgba(231,76,60,0.1) !important;
+    border-color: #E74C3C !important;
+    transform: translateY(-1px) !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stButton"] > button:active {
     transform: translateY(0px) !important;
 }
 
@@ -691,6 +725,23 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Clear Form Button ──
+    st.markdown(
+        '<div style="height:1px;background:linear-gradient(90deg,transparent,'
+        'rgba(255,255,255,0.08),transparent);margin:1.2rem 0 0.4rem;"></div>',
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        '<p style="font-family:\'DM Mono\',monospace;font-size:0.6rem;letter-spacing:0.14em;'
+        'text-transform:uppercase;color:#4A5066;text-align:center;margin-bottom:0;">↺ reset all fields to defaults</p>',
+        unsafe_allow_html=True
+    )
+    if st.button("🗑  Clear Form", key="clear_form"):
+        keys_to_clear = [k for k in st.session_state if k not in ["clear_form"]]
+        for k in keys_to_clear:
+            del st.session_state[k]
+        st.rerun()
+
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         '<p style="font-family:\'DM Mono\',monospace;font-size:0.58rem;color:#2A2F44;'
@@ -754,6 +805,46 @@ with col9:
     )
 
 credit_history_val = credit_options[credit_desc_main]["value"]
+
+# ── Credit History Helper Box ──
+chosen_credit = credit_options[credit_desc_main]
+ch_colors = {
+    "green":  ("#2ECC71", "rgba(46,204,113,0.08)"),
+    "blue":   ("#3B9EFF", "rgba(59,158,255,0.08)"),
+    "orange": ("#F5A623", "rgba(245,166,35,0.08)"),
+    "red":    ("#E74C3C", "rgba(231,76,60,0.08)"),
+}
+ch_fg, ch_bg = ch_colors[chosen_credit["color"]]
+st.markdown(f"""
+<div style="background:{ch_bg};border:1px solid {ch_fg}33;border-radius:12px;
+            padding:1.1rem 1.4rem;margin-top:0.6rem;margin-bottom:0.4rem;">
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
+        <span style="font-size:1rem;">{chosen_credit['icon']}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;
+                     text-transform:uppercase;color:{ch_fg};">
+            Selected · {credit_desc_main.split('·')[1].strip() if '·' in credit_desc_main else ''}
+        </span>
+    </div>
+    <div style="font-size:0.8rem;color:#A0A5B8;line-height:1.6;margin-bottom:0.8rem;">
+        {chosen_credit['info']}
+    </div>
+    <div style="height:1px;background:rgba(255,255,255,0.06);margin-bottom:0.8rem;"></div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;
+                text-transform:uppercase;color:{ch_fg};margin-bottom:0.5rem;">
+        🏦 Where to Find Your Credit Score
+    </div>
+    <div style="font-size:0.78rem;color:#8A8FA8;line-height:1.75;">
+        <span style="color:{ch_fg};font-weight:600;">①</span>
+        &nbsp;Visit your <strong style="color:#C0C5D8;">bank branch</strong>
+        and request an official <strong style="color:#C0C5D8;">e-CIB report</strong><br>
+        <span style="color:{ch_fg};font-weight:600;">②</span>
+        &nbsp;Go to <strong style="color:#C9A84C;">sbp.org.pk</strong>
+        → eCIB section → check your ECIB standing online<br>
+        <span style="color:{ch_fg};font-weight:600;">③</span>
+        &nbsp;Match the score on your report to the range selected above
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.button("⬡  Generate Risk Intelligence Report", key="submit")
