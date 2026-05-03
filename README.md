@@ -1,5 +1,7 @@
 # Loan Approval Prediction System (CareXpert Risk Intelligence)
 
+URL:: https://ai-loan-predicator.streamlit.app/
+
 ## Project Overview
 An end-to-end Machine Learning application that predicts whether a loan application should be **Approved** or **Rejected** based on applicant financial and demographic information.
 
