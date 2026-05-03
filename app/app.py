@@ -60,12 +60,8 @@ html, body, [data-testid="stAppViewContainer"] {
     border-right: 1px solid var(--border) !important;
 }
 
-/* Only force color on native Streamlit widgets inside sidebar, not custom HTML */
-[data-testid="stSidebar"] .stMarkdown p,
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3,
-[data-testid="stSidebar"] hr {
-    color: var(--text-primary);
+[data-testid="stSidebar"] * {
+    color: var(--text-primary) !important;
 }
 
 /* ── Header / Toolbar ── */
@@ -214,9 +210,9 @@ label[data-testid="stWidgetLabel"] p,
 }
 
 /* ─────────────────────────────────────────────────
-   MAIN SUBMIT BUTTON (gold) — main area only
+   SUBMIT BUTTON
 ───────────────────────────────────────────────── */
-section.main [data-testid="stButton"] > button {
+[data-testid="stButton"] > button {
     width: 100% !important;
     background: linear-gradient(135deg, var(--gold) 0%, #A07B2E 100%) !important;
     color: var(--navy) !important;
@@ -234,42 +230,12 @@ section.main [data-testid="stButton"] > button {
     margin-top: 0.5rem !important;
 }
 
-section.main [data-testid="stButton"] > button:hover {
+[data-testid="stButton"] > button:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 32px rgba(201,168,76,0.4) !important;
 }
 
-section.main [data-testid="stButton"] > button:active {
-    transform: translateY(0px) !important;
-}
-
-/* ─────────────────────────────────────────────────
-   SIDEBAR CLEAR BUTTON (red outline)
-───────────────────────────────────────────────── */
-[data-testid="stSidebar"] [data-testid="stButton"] > button {
-    width: 100% !important;
-    background: transparent !important;
-    color: #E74C3C !important;
-    font-family: 'Outfit', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.82rem !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    border: 1.5px solid rgba(231,76,60,0.5) !important;
-    border-radius: 10px !important;
-    padding: 0.65rem 1.2rem !important;
-    cursor: pointer !important;
-    transition: all 0.25s ease !important;
-    margin-top: 0.8rem !important;
-}
-
-[data-testid="stSidebar"] [data-testid="stButton"] > button:hover {
-    background: rgba(231,76,60,0.1) !important;
-    border-color: #E74C3C !important;
-    transform: translateY(-1px) !important;
-}
-
-[data-testid="stSidebar"] [data-testid="stButton"] > button:active {
+[data-testid="stButton"] > button:active {
     transform: translateY(0px) !important;
 }
 
@@ -611,142 +577,65 @@ CREDIT_HELP = (
 
 
 # ── 5. SIDEBAR ───────────────────────────────────────────────────────────────
-# Build sidebar content — NO f-string loops (breaks on Python ≤ 3.11)
-first_option    = list(credit_options.keys())[0]
-selected_credit = st.session_state.get("main_credit_score", first_option)
-
-# Per-tier static data
-_TIERS = [
-    ("0.8 – 1.0", "Excellent",          "green",  "#2ECC71", "rgba(46,204,113,0.12)",  "rgba(46,204,113,0.35)",  "✦",
-     "Highest trust tier. Consistent on-time repayment history. Strongest approval signal in the model."),
-    ("0.6 – 0.8", "Good",                "blue",   "#3B9EFF", "rgba(59,158,255,0.12)",  "rgba(59,158,255,0.35)",  "◈",
-     "Reliable repayment with only minor delays. Model treats this favorably."),
-    ("0.4 – 0.6", "Average / No History","orange", "#F5A623", "rgba(245,166,35,0.12)",  "rgba(245,166,35,0.35)",  "◇",
-     "Neutral zone or first-time borrowers. Model shifts weight to income and education."),
-    ("0.2 – 0.4", "Below Average",        "orange", "#F5A623", "rgba(245,166,35,0.08)",  "rgba(245,166,35,0.25)",  "▽",
-     "Some missed payments on record. Strong co-applicant may partially offset."),
-    ("0.0 – 0.2", "Very Poor",            "red",    "#E74C3C", "rgba(231,76,60,0.12)",   "rgba(231,76,60,0.35)",   "✕",
-     "Frequent defaults detected. Critical risk flag — very difficult to offset."),
-]
-
-# Map credit_options keys to tier rows for selection matching
-_TIER_KEYS = list(credit_options.keys())
-
-def _build_tier_card(key_idx, tier_tuple, is_active):
-    rng, name, _color, fg, bg_active, border_active, icon, desc = tier_tuple
-    if is_active:
-        bg     = bg_active
-        border = "1.5px solid " + fg
-        bl     = "4px solid " + fg
-        rc     = fg
-        nc     = "#F0EDE8"
-        dc     = "#B0B5C8"
-        op     = "1"
-        tag    = (
-            "<span style=\"float:right;font-size:0.55rem;font-family:monospace;"
-            "letter-spacing:0.1em;text-transform:uppercase;color:" + fg + ";"
-            "background:" + bg_active + ";border:1px solid " + fg + "55;"
-            "border-radius:4px;padding:1px 5px;\">Selected</span>"
-        )
-    else:
-        bg     = "rgba(255,255,255,0.025)"
-        border = "1px solid rgba(255,255,255,0.07)"
-        bl     = "3px solid rgba(255,255,255,0.09)"
-        rc     = "#555A70"
-        nc     = "#555A70"
-        dc     = "#3E4358"
-        op     = "0.7"
-        tag    = ""
-
-    return (
-        "<div style=\"background:" + bg + ";border:" + border + ";"
-        "border-left:" + bl + ";border-radius:10px;padding:0.65rem 0.9rem;"
-        "margin-bottom:0.45rem;opacity:" + op + ";\">"
-        "<div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;\">"
-        "<span style=\"font-size:0.68rem;font-family:monospace;color:" + rc + ";\">" + rng + "</span>"
-        + tag +
-        "</div>"
-        "<div style=\"font-size:0.8rem;font-weight:600;color:" + nc + ";margin-bottom:3px;\">"
-        + icon + " &nbsp;" + name +
-        "</div>"
-        "<div style=\"font-size:0.7rem;color:" + dc + ";line-height:1.45;\">" + desc + "</div>"
-        "</div>"
-    )
-
-_cards_html = ""
-for i, (key, tier_data) in enumerate(zip(_TIER_KEYS, _TIERS)):
-    _cards_html += _build_tier_card(i, tier_data, key == selected_credit)
-
 with st.sidebar:
-    # Logo
+    st.markdown("## ⬡ CareXpert")
     st.markdown(
-        "<div style=\"font-family:'Cormorant Garamond',serif;font-size:1.5rem;"
-        "font-weight:700;color:#C9A84C;\">&#x2B21; CareXpert</div>",
+        '<p style="font-family:\'DM Mono\',monospace;font-size:0.62rem;'
+        'letter-spacing:0.15em;color:#4A5066;text-transform:uppercase;margin-top:-0.4rem;">'
+        'Risk Intelligence v2.0</p>',
         unsafe_allow_html=True
     )
-    st.markdown(
-        "<p style=\"font-family:monospace;font-size:0.55rem;letter-spacing:0.16em;"
-        "text-transform:uppercase;color:#3A3F54;margin-top:2px;margin-bottom:10px;\">"
-        "Risk Intelligence v2.0</p>",
-        unsafe_allow_html=True
-    )
-    st.markdown("<hr style=\"border:none;border-top:1px solid rgba(255,255,255,0.07);margin-bottom:12px;\">", unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("### Credit Score Signal")
 
-    # Guide header
+    # Read the main-form selection (single source of truth)
+    first_option = list(credit_options.keys())[0]
+    selected_credit = st.session_state.get("main_credit_score", first_option)
+    chosen = credit_options.get(selected_credit, credit_options[first_option])
+
+    color_map = {
+        "green":  ("#2ECC71", "rgba(46,204,113,0.08)"),
+        "blue":   ("#3B9EFF", "rgba(59,158,255,0.08)"),
+        "orange": ("#F5A623", "rgba(245,166,35,0.08)"),
+        "red":    ("#E74C3C", "rgba(231,76,60,0.08)"),
+    }
+    fg, bg = color_map[chosen["color"]]
+
+    # Show score badge
+    st.markdown(f"""
+    <div style="background:{bg};border:1px solid {fg}44;border-radius:10px;
+                padding:1rem 1.2rem;margin-top:0.4rem;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;
+                    text-transform:uppercase;color:{fg};margin-bottom:0.6rem;">
+            Selected Range
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;
+                    font-weight:700;color:{fg};margin-bottom:0.5rem;">
+            {selected_credit.split('·')[0].strip()}
+        </div>
+        <div style="font-size:0.78rem;color:#8A8FA8;line-height:1.55;">
+            {chosen['info']}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### How to Verify")
     st.markdown(
-        "<p style=\"font-family:monospace;font-size:0.6rem;letter-spacing:0.17em;"
-        "text-transform:uppercase;color:#C9A84C;margin-bottom:6px;\">&#x1F4CA; Credit Score Guide</p>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        "<p style=\"font-size:0.75rem;color:#8A8FA8;line-height:1.5;margin-bottom:10px;\">"
-        "Select a range in the form. Your matching tier is highlighted.</p>",
+        '<div class="sidebar-badge">'
+        '<strong>e-CIB Report</strong>'
+        'Request an official credit bureau report from your bank or visit the '
+        'State Bank of Pakistan (SBP) portal at <strong>sbp.org.pk</strong> '
+        'to get your official credit score before applying.'
+        '</div>',
         unsafe_allow_html=True
     )
 
-    # All 5 tier cards
-    st.markdown(_cards_html, unsafe_allow_html=True)
-
-    # How to verify
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        "<p style=\"font-family:monospace;font-size:0.6rem;letter-spacing:0.16em;"
-        "text-transform:uppercase;color:#C9A84C;margin-bottom:6px;\">&#x1F3E6; How to Check Your Score</p>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        "<div style=\"background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.22);"
-        "border-radius:9px;padding:0.9rem 1rem;font-size:0.75rem;color:#8A8FA8;line-height:1.7;\">"
-        "<span style=\"color:#E8C97A;font-weight:600;\">e-CIB Report</span><br>"
-        "<span style=\"color:#C9A84C;font-weight:600;\">&#x2460;</span> Visit your bank branch &#8594; request e-CIB report<br>"
-        "<span style=\"color:#C9A84C;font-weight:600;\">&#x2461;</span> Go to <strong style=\"color:#C9A84C;\">sbp.org.pk</strong> &#8594; eCIB section<br>"
-        "<span style=\"color:#C9A84C;font-weight:600;\">&#x2462;</span> Match your score to the range above"
-        "</div>",
-        unsafe_allow_html=True
-    )
-
-    # Divider + clear button
-    st.markdown(
-        "<hr style=\"border:none;border-top:1px solid rgba(255,255,255,0.06);"
-        "margin:14px 0 4px;\">",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        "<p style=\"font-family:monospace;font-size:0.58rem;letter-spacing:0.12em;"
-        "text-transform:uppercase;color:#3E4358;text-align:center;margin-bottom:2px;\">"
-        "&#x21BA; reset all fields to defaults</p>",
-        unsafe_allow_html=True
-    )
-    if st.button("🗑  Clear Form", key="clear_form"):
-        keys_to_clear = [k for k in st.session_state if k != "clear_form"]
-        for k in keys_to_clear:
-            del st.session_state[k]
-        st.rerun()
-
-    st.markdown(
-        "<p style=\"font-family:monospace;font-size:0.52rem;color:#252A3A;"
-        "text-transform:uppercase;letter-spacing:0.1em;text-align:center;margin-top:8px;\">"
-        "Powered by Logistic Regression &middot; PKR</p>",
+        '<p style="font-family:\'DM Mono\',monospace;font-size:0.58rem;color:#2A2F44;'
+        'text-transform:uppercase;letter-spacing:0.12em;text-align:center;">'
+        'Powered by Logistic Regression · PKR</p>',
         unsafe_allow_html=True
     )
 
@@ -805,46 +694,6 @@ with col9:
     )
 
 credit_history_val = credit_options[credit_desc_main]["value"]
-
-# ── Credit History Helper Box ──
-chosen_credit = credit_options[credit_desc_main]
-ch_colors = {
-    "green":  ("#2ECC71", "rgba(46,204,113,0.08)"),
-    "blue":   ("#3B9EFF", "rgba(59,158,255,0.08)"),
-    "orange": ("#F5A623", "rgba(245,166,35,0.08)"),
-    "red":    ("#E74C3C", "rgba(231,76,60,0.08)"),
-}
-ch_fg, ch_bg = ch_colors[chosen_credit["color"]]
-st.markdown(f"""
-<div style="background:{ch_bg};border:1px solid {ch_fg}33;border-radius:12px;
-            padding:1.1rem 1.4rem;margin-top:0.6rem;margin-bottom:0.4rem;">
-    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
-        <span style="font-size:1rem;">{chosen_credit['icon']}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;
-                     text-transform:uppercase;color:{ch_fg};">
-            Selected · {credit_desc_main.split('·')[1].strip() if '·' in credit_desc_main else ''}
-        </span>
-    </div>
-    <div style="font-size:0.8rem;color:#A0A5B8;line-height:1.6;margin-bottom:0.8rem;">
-        {chosen_credit['info']}
-    </div>
-    <div style="height:1px;background:rgba(255,255,255,0.06);margin-bottom:0.8rem;"></div>
-    <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;
-                text-transform:uppercase;color:{ch_fg};margin-bottom:0.5rem;">
-        🏦 Where to Find Your Credit Score
-    </div>
-    <div style="font-size:0.78rem;color:#8A8FA8;line-height:1.75;">
-        <span style="color:{ch_fg};font-weight:600;">①</span>
-        &nbsp;Visit your <strong style="color:#C0C5D8;">bank branch</strong>
-        and request an official <strong style="color:#C0C5D8;">e-CIB report</strong><br>
-        <span style="color:{ch_fg};font-weight:600;">②</span>
-        &nbsp;Go to <strong style="color:#C9A84C;">sbp.org.pk</strong>
-        → eCIB section → check your ECIB standing online<br>
-        <span style="color:{ch_fg};font-weight:600;">③</span>
-        &nbsp;Match the score on your report to the range selected above
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 st.button("⬡  Generate Risk Intelligence Report", key="submit")
