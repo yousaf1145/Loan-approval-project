@@ -76,16 +76,17 @@ left_col, right_col = st.columns([1, 2.8], gap="large")
 #  LEFT PANEL — Credit Score Guide
 # ══════════════════════════════════════════════════════
 with left_col:
-    st.markdown('''
-    <div style="background:#0D1326;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.6rem 1.4rem;position:sticky;top:1rem;">
-
-        <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#C9A84C;margin-bottom:2px;">⬡ CareXpert</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.18em;text-transform:uppercase;color:#2A2F44;margin-bottom:1rem;">Risk Intelligence v2.0</div>
-        <div style="height:1px;background:rgba(255,255,255,0.07);margin-bottom:1rem;"></div>
-
-        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.16em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.5rem;">📊 Credit Score Guide</div>
-        <div style="font-size:0.75rem;color:#8A8FA8;line-height:1.5;margin-bottom:1rem;">Select a range in the form. Your matching tier is highlighted below.</div>
-    ''', unsafe_allow_html=True)
+    st.markdown(
+        """<div style="background:#0D1326;border:1px solid rgba(255,255,255,0.08);
+        border-radius:16px;padding:1.4rem 1.2rem;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:#C9A84C;margin-bottom:2px;">⬡ CareXpert</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.52rem;letter-spacing:0.18em;text-transform:uppercase;color:#2A2F44;margin-bottom:0.9rem;">Risk Intelligence v2.0</div>
+        <div style="height:1px;background:rgba(255,255,255,0.07);margin-bottom:0.9rem;"></div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.16em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.45rem;">📊 Credit Score Guide</div>
+        <div style="font-size:0.73rem;color:#8A8FA8;line-height:1.5;margin-bottom:0.9rem;">Select a range in the form. Your matching tier is highlighted below.</div>
+        </div>""",
+        unsafe_allow_html=True
+    )
 
     selected_credit = st.session_state.get("main_credit_score", list(credit_options.keys())[0])
 
@@ -123,17 +124,20 @@ with left_col:
         )
         st.markdown(card, unsafe_allow_html=True)
 
-    st.markdown('''
-        <div style="height:1px;background:rgba(255,255,255,0.07);margin:1rem 0;"></div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.5rem;">🏦 How to Check Your Score</div>
-        <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.22);border-radius:9px;padding:0.85rem;font-size:0.74rem;color:#8A8FA8;line-height:1.7;">
+    st.markdown(
+        """<div style="background:#0D1326;border:1px solid rgba(255,255,255,0.08);
+        border-radius:16px;padding:1rem 1.2rem;margin-top:0.5rem;">
+        <div style="height:1px;background:rgba(255,255,255,0.07);margin-bottom:0.8rem;"></div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.45rem;">🏦 How to Check Your Score</div>
+        <div style="background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.22);border-radius:9px;padding:0.8rem;font-size:0.73rem;color:#8A8FA8;line-height:1.7;">
             <span style="color:#E8C97A;font-weight:600;">e-CIB Report</span><br>
             <span style="color:#C9A84C;">①</span> Visit your bank branch<br>
             <span style="color:#C9A84C;">②</span> Go to <strong style="color:#C9A84C;">sbp.org.pk</strong> → eCIB<br>
             <span style="color:#C9A84C;">③</span> Match score to range above
         </div>
-    </div>
-    ''', unsafe_allow_html=True)
+        </div>""",
+        unsafe_allow_html=True
+    )
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("🗑  Clear Form", key="clear_form", use_container_width=True):
